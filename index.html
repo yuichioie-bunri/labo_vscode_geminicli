@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gemini CLI 導入＆共有PC運用ガイド（Windows / VS Code）</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Gemini CLI 導入＆共有PC運用ガイド（Windows / VS Code 単一ファイル）</h1>
+      <div class="meta">最終更新: 2025-10-06 JST</div>
+    </header>
+
+    <div class="card">
+      <h2>このドキュメントの使い方</h2>
+      <ul class="list-tight">
+        <li>環境: <span class="tag">Windows 11</span> <span class="tag">VS Code 統合ターミナル</span> <span class="tag">PowerShell</span></li>
+        <li>最短で動かす → <strong>導入チェックリスト</strong> の <strong>手順 1→5</strong> を上から実行。</li>
+        <li>共用PCでアカウントを切替 → <strong>共有PCでのアカウント切替</strong> を使用。</li>
+      </ul>
+    <div class="card">
+      <h2>導入チェックリスト（別PCでも同じ）</h2>
+
+      <h3>1) Node.js を用意</h3>
+      <p>Node.js 20+ をインストール後、バージョンを確認。</p>
+      <pre><button class="copy" data-copy="node -v&#10;npm -v">Copy</button><code>node -v
+npm -v</code></pre>
+
+      <h3>2) Gemini CLI をインストール</h3>
+      <pre><button class="copy" data-copy="npm i -g @google/gemini-cli">Copy</button><code>npm i -g @google/gemini-cli</code></pre>
+
+      <h3>3) PowerShell の ps1 ブロック回避（権限変更なし）</h3>
+      <p>PowerShell は <code>*.ps1</code> を既定でブロック。<code>gemini.ps1</code> を削除して <code>gemini.cmd</code> を優先。</p>
+      <pre><button class="copy" data-copy="Remove-Item &quot;$env:APPDATA\npm\gemini.ps1&quot; -Force -ErrorAction SilentlyContinue">Copy</button><code>Remove-Item "$env:APPDATA\npm\gemini.ps1" -Force -ErrorAction SilentlyContinue</code></pre>
+
+      <details>
+        <summary>代替: 実行ポリシーを緩める（自己端末のみ）</summary>
+        <pre><button class="copy" data-copy="Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force">Copy</button><code>Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force</code></pre>
+      </details>
+
+      <h3>4) PATH が通っていない場合のみ追加</h3>
+      <p><code>gemini</code> が「見つからない」と出る場合に実施。</p>
+      <pre><button class="copy" data-copy="$bin = &quot;$env:APPDATA\npm&quot;&#10;$cur = [Environment]::GetEnvironmentVariable('Path','User')&#10;if ($cur -notlike &quot;*$bin*&quot;) { [Environment]::SetEnvironmentVariable('Path', &quot;$cur;$bin&quot;, 'User') }">Copy</button><code>$bin = "$env:APPDATA\npm"
+$cur = [Environment]::GetEnvironmentVariable('Path','User')
+if ($cur -notlike "*$bin*") { [Environment]::SetEnvironmentVariable('Path', "$cur;$bin", 'User') }</code></pre>
+      <p class="note">VS Code を一度終了し、新しいターミナルを開く。</p>
+
+      <h3>5) 動作確認</h3>
+      <pre><button class="copy" data-copy="gemini -v&#10;gemini -p &quot;テスト&quot;">Copy</button><code>gemini -v
+gemini -p "テスト"</code></pre>
+
+      <h3>6) サインイン</h3>
+      <div class="grid">
+        <div>
+          <h4 style="margin:0 0 6px 0">A. ブラウザ認証</h4>
+          <p>初回 <code>gemini</code> 実行時にブラウザで Google ログイン。</p>
+          <pre><button class="copy" data-copy="gemini">Copy</button><code>gemini</code></pre>
+        </div>
+        <div>
+          <h4 style="margin:0 0 6px 0">B. APIキー運用（ブラウザ不要）</h4>
+          <p>AI Studio で発行したキーを環境変数で指定。ターミナル単位で有効。</p>
+          <pre><button class="copy" data-copy="$env:GEMINI_API_KEY = &quot;YOUR_API_KEY&quot;&#10;gemini -p &quot;キーで実行テスト&quot;">Copy</button><code>$env:GEMINI_API_KEY = "YOUR_API_KEY"
+gemini -p "キーで実行テスト"</code></pre>
+          <p class="note">永続化はプロファイルに追記。共有PCでは推奨しない。</p>
+        </div>
+      </div>
+    <div class="card">
+      <h2>共有PCでのアカウント切替（AI研修）</h2>
+      <h3>方法A: ブラウザ認証を切替（標準）</h3>
+      <ol>
+        <li>前ユーザーがログアウト</li>
+      </ol>
+      <pre><button class="copy" data-copy="gemini /logout">Copy</button><code>gemini /logout</code></pre>
+      <ol start="2">
+        <li>直後に <code>gemini</code> を実行し、ブラウザで別アカウントにサインイン</li>
+      </ol>
+      <pre><button class="copy" data-copy="gemini">Copy</button><code>gemini</code></pre>
+
+      <h3>方法B: APIキーで使い捨て</h3>
+      <p>各参加者が自分のキーをセット。ターミナルを閉じれば消える。</p>
+      <pre><button class="copy" data-copy="$env:GEMINI_API_KEY = &quot;各自のキー&quot;&#10;gemini -p &quot;誰のキーで動作中か確認&quot;">Copy</button><code>$env:GEMINI_API_KEY = "各自のキー"
+gemini -p "誰のキーで動作中か確認"</code></pre>
+
+      <h3>研修終了時のクリーンアップ</h3>
+      <ul class="list-tight">
+        <li>ブラウザ認証の場合: <code>gemini /logout</code></li>
+        <li>APIキーの場合: すべてのターミナルを閉じる</li>
+        <li>必要に応じてブラウザから Google アカウントもサインアウト</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>VS Code ターミナルでのログアウト共有メモ</h2>
+      <p>VS Code の統合ターミナルを使う場合も <code>gemini /logout</code> でセッションを終了できます。ChatGPT に確認した手順をメモとして残しています。</p>
+      <details>
+        <summary>ChatGPT との会話ログを表示</summary>
+        <div class="chat-log">
+          <p><span class="role">ユーザー:</span>&nbsp;VS Code のターミナルで Gemini からログアウトするコマンドを教えてください。</p>
+          <p><span class="role">ChatGPT:</span>&nbsp;<code>gemini /logout</code> を実行すると現在の認証情報が無効になります。</p>
+          <p><span class="role">ユーザー:</span>&nbsp;コマンドをダブルクリックでコピーしてすぐ貼り付けたいです。</p>
+          <p><span class="role">ChatGPT:</span>&nbsp;コードブロックをダブルクリックするとコピーできるので、VS Code ターミナルに貼り付けて Enter を押せばログアウト完了です。</p>
+        </div>
+      </details>
+      <pre><button class="copy" data-copy="gemini /logout" title="クリックまたはダブルクリックでコピー">Copy</button><code>gemini /logout</code></pre>
+      <p class="note">コードブロックをダブルクリックすると自動的にクリップボードへコピーされます。VS Code ターミナルに貼り付けて Enter を押すだけでログアウトできます。</p>
+    </div>
+
+
+    <div class="card">
+      <h2>デスクトップのバッチで一括ログアウト</h2>
+      <p>共有PCでは VS Code や環境変数の状態をまとめてリセットしたい場合があります。ChatGPT から教えてもらったバッチスクリプトを <code>%USERPROFILE%&#92;Desktop&#92;gemini_logout.bat</code> として保存し、ダブルクリックで実行するとログイン情報をクリーンアップできます。</p>
+      <details>
+        <summary>ChatGPT との会話ログを表示</summary>
+        <div class="chat-log">
+          <p><span class="role">ユーザー:</span>&nbsp;デスクトップにバッチを置いて、Gemini のログイン情報をまとめて削除する方法はありますか?</p>
+          <p><span class="role">ChatGPT:</span>&nbsp;Desktop&#92;gemini_logout.bat に下記を保存し、ダブルクリックで実行するとクリーンアップできます。</p>
+        </div>
+      </details>
+      <pre><button class="copy" data-copy="@echo off&#10;setlocal&#10;&#10;echo Closing VS Code...&#10;taskkill /IM Code.exe /F &gt;nul 2&gt;&amp;1&#10;taskkill /IM &quot;Code - Insiders.exe&quot; /F &gt;nul 2&gt;&amp;1&#10;&#10;echo Removing gemini OAuth token...&#10;if exist &quot;%USERPROFILE%&#92;.gemini&#92;oauth_creds.json&quot; del /f /q &quot;%USERPROFILE%&#92;.gemini&#92;oauth_creds.json&quot;&#10;&#10;echo Clearing VS Code Gemini extension storage...&#10;if exist &quot;%APPDATA%&#92;Code&#92;User&#92;globalStorage&#92;google.geminicodeassist&quot; rmdir /s /q &quot;%APPDATA%&#92;Code&#92;User&#92;globalStorage&#92;google.geminicodeassist&quot;&#10;if exist &quot;%APPDATA%&#92;Code - Insiders&#92;User&#92;globalStorage&#92;google.geminicodeassist&quot; rmdir /s /q &quot;%APPDATA%&#92;Code - Insiders&#92;User&#92;globalStorage&#92;google.geminicodeassist&quot;&#10;&#10;echo Unsetting GEMINI_API_KEY for this session...&#10;set GEMINI_API_KEY=&#10;&#10;echo Removing user-level GEMINI_API_KEY env var...&#10;reg delete &quot;HKCU&#92;Environment&quot; /v GEMINI_API_KEY /f &gt;nul 2&gt;&amp;1&#10;&#10;echo Done. Restart VS Code. If GEMINI_API_KEY was set system-wide, run as admin and also delete:&#10;echo   reg delete &quot;HKLM&#92;SYSTEM&#92;CurrentControlSet&#92;Control&#92;Session Manager&#92;Environment&quot; /v GEMINI_API_KEY /f&#10;pause&#10;endlocal" title="クリックまたはダブルクリックでコピー">Copy</button><code>@echo off
+setlocal
+
+echo Closing VS Code...
+taskkill /IM Code.exe /F &gt;nul 2&gt;&amp;1
+taskkill /IM &quot;Code - Insiders.exe&quot; /F &gt;nul 2&gt;&amp;1
+
+echo Removing gemini OAuth token...
+if exist &quot;%USERPROFILE%&#92;.gemini&#92;oauth_creds.json&quot; del /f /q &quot;%USERPROFILE%&#92;.gemini&#92;oauth_creds.json&quot;
+
+echo Clearing VS Code Gemini extension storage...
+if exist &quot;%APPDATA%&#92;Code&#92;User&#92;globalStorage&#92;google.geminicodeassist&quot; rmdir /s /q &quot;%APPDATA%&#92;Code&#92;User&#92;globalStorage&#92;google.geminicodeassist&quot;
+if exist &quot;%APPDATA%&#92;Code - Insiders&#92;User&#92;globalStorage&#92;google.geminicodeassist&quot; rmdir /s /q &quot;%APPDATA%&#92;Code - Insiders&#92;User&#92;globalStorage&#92;google.geminicodeassist&quot;
+
+echo Unsetting GEMINI_API_KEY for this session...
+set GEMINI_API_KEY=
+
+echo Removing user-level GEMINI_API_KEY env var...
+reg delete &quot;HKCU&#92;Environment&quot; /v GEMINI_API_KEY /f &gt;nul 2&gt;&amp;1
+
+echo Done. Restart VS Code. If GEMINI_API_KEY was set system-wide, run as admin and also delete:
+echo   reg delete &quot;HKLM&#92;SYSTEM&#92;CurrentControlSet&#92;Control&#92;Session Manager&#92;Environment&quot; /v GEMINI_API_KEY /f
+pause
+endlocal</code></pre>
+      <p class="note">バッチ実行後に VS Code を再起動してください。システム全体の環境変数を削除する必要がある場合は、管理者権限のコマンドプロンプトで表示されたコマンドを実行します。</p>
+    </div>
+    <div class="card">
+      <h2>トラブル時の最小コマンド</h2>
+      <h3>ps1 ブロックで起動不可</h3>
+      <pre><button class="copy" data-copy="Remove-Item &quot;$env:APPDATA\npm\gemini.ps1&quot; -Force">Copy</button><code>Remove-Item "$env:APPDATA\npm\gemini.ps1" -Force</code></pre>
+
+      <h3>一時的に直接実行（PATH不要）</h3>
+      <pre><button class="copy" data-copy="&amp; &quot;$env:APPDATA\npm\gemini.cmd&quot; -p &quot;テスト&quot;">Copy</button><code>&amp; "$env:APPDATA\npm\gemini.cmd" -p "テスト"</code></pre>
+
+      <h3>再インストール</h3>
+      <pre><button class="copy" data-copy="npm i -g @google/gemini-cli">Copy</button><code>npm i -g @google/gemini-cli</code></pre>
+
+      <details>
+        <summary>参考: PATH の位置確認</summary>
+        <pre><button class="copy" data-copy="where gemini&#10;echo $env:Path">Copy</button><code>where gemini
+echo $env:Path</code></pre>
+      </details>
+    </div>
+
+    <footer>
+      © 2025 YuichiOIE　／　used Gemini，Codex
+    </footer>
+  </div>
+
+<script src="script.js"></script>
+</body>
+</html>
